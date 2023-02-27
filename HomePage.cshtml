@@ -1,0 +1,44 @@
+﻿@page
+@model testWeb.Pages.HomePageModel
+@{
+}
+<div class="text-center">
+    <h1>Welcome</h1>
+    <h4>Here you can do what you want</h4>
+</div>
+<form method="post">
+    <div>
+        <button type="submit" class="btn btn-cta">Log out</button>
+    </div>
+</form>
+<p>@Model.errorMsg</p>
+
+<br />
+<h2>Welcome to your profile !</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Password</th>
+            <th>First name</th>
+            <th>Second name</th>
+            <th>Email</th>
+        </tr>
+    </thead>
+    <tbody>
+       
+        <tr>
+            <td>@Model.user.userId</td>
+            <td>@Model.user.Username</td>
+            <td>@Model.user.Password</td>
+            <td>@Model.user.FirstName</td>
+            <td>@Model.user.SecondName</td>
+            <td>@Model.user.Email</td>
+            <td>
+                <a class="btn btn-primary btn-sm" href="/Edit">Edit</a>
+                <a class="btn btn-primary btn-sm" href="/Delete">Delete</a>
+            </td>
+        </tr>           
+    </tbody>
+</table>

@@ -1,0 +1,71 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+<div class="text-center">
+    <h1>Welcome to register form</h1>
+</div>
+
+@if (Model.errorMsg == null)
+{
+    if (Model.contains)
+    {
+        <p>You have registered succesfully</p>
+    }
+}
+else
+{
+    <p>@Model.errorMsg</p>
+}
+
+<button type="button" class="btn btn-cta"><a asp-page="/HomePage">znaesh</a></button>
+
+<form method="post">
+    <div class="row mb-3">
+        <label class="col-sm-3 col-form-label">Username</label>
+        <div class="col-sm-6">
+            <input type="text" class="form-control" name="username" value="" />
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label class="col-sm-3 col-form-label">Password</label>
+        <div class="col-sm-6">
+            <input type="password" class="form-control" name="password" value="" />
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label class="col-sm-3 col-form-label">Confirm password</label>
+        <div class="col-sm-6">
+            <input type="password" class="form-control" name="confirmPass" value="" />
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label class="col-sm-3 col-form-label">First name</label>
+        <div class="col-sm-6">
+            <input type="text" class="form-control" name="firstName" value="" />
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label class="col-sm-3 col-form-label">Second name</label>
+        <div class="col-sm-6">
+            <input type="text" class="form-control" name="secondName" value="" />
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label class="col-sm-3 col-form-label">Email</label>
+        <div class="col-sm-6">
+            <input type="text" class="form-control" name="email" value="" />
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="offset-sm-3 col-sm-3 d-grid">
+            <button type="submit" class="btn btn-primary">Register</button>
+        </div>
+        <div class="col-sm-3 d-grid">
+            <a class="btn btn-outline-primary" href="/LogIn" role="button">Log In</a>
+        </div>
+    </div>
+</form>
