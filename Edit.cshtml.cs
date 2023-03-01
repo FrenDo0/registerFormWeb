@@ -38,15 +38,16 @@ namespace testWeb.Pages
 
         public void OnPost()
         {
+
             String id = HttpContext.Session.GetString("sessionUserId");
-            
+            getUserInformation(id);
             User user = new User();
             user.Username = Request.Form["username"];
-            user.Password = Request.Form["password"];
+            user.Password = user2.Password;
             user.FirstName = Request.Form["firstName"];
             user.SecondName = Request.Form["secondName"];
             user.Email = Request.Form["email"];
-            String confirmPass = Request.Form["confirmPassword"];
+            String confirmPass = user2.Password;
             
             bool checker = false;
 
@@ -133,12 +134,14 @@ namespace testWeb.Pages
                         {
                             if (reader.Read())
                             {
-                                user2.userId = "" + reader.GetInt32(0);
+                                user2.userId = "" + reader.GetInt64(0);
                                 user2.Username = reader.GetString(1);
                                 user2.Password = reader.GetString(2);
                                 user2.FirstName = reader.GetString(3);
                                 user2.SecondName = reader.GetString(4);
                                 user2.Email = reader.GetString(5);
+                                user2.confirmedEmail = reader.GetString(6);
+                                user2.active = reader.GetString(7);
                             }
                         }
                     }
@@ -146,7 +149,7 @@ namespace testWeb.Pages
             }
             catch(Exception ex)
             {
-                Console.WriteLine("SQL exception");
+                errorMsg = ex.StackTrace;
             }
             return user2;
         }

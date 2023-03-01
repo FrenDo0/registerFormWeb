@@ -6,9 +6,15 @@
     <h1>Welcome</h1>
     <h4>Here you can do what you want</h4>
 </div>
-<form method="post">
+<form method="post" asp-page-handler="LogOut">
     <div>
         <button type="submit" class="btn btn-cta">Log out</button>
+    </div>
+</form>
+
+<form method="post" asp-page-handler="Delete">
+    <div>
+        <button type="submit" class="alert-danger">Delete profile</button>
     </div>
 </form>
 <p>@Model.errorMsg</p>
@@ -20,7 +26,6 @@
         <tr>
             <th>ID</th>
             <th>Username</th>
-            <th>Password</th>
             <th>First name</th>
             <th>Second name</th>
             <th>Email</th>
@@ -31,13 +36,11 @@
         <tr>
             <td>@Model.user.userId</td>
             <td>@Model.user.Username</td>
-            <td>@Model.user.Password</td>
             <td>@Model.user.FirstName</td>
             <td>@Model.user.SecondName</td>
             <td>@Model.user.Email</td>
             <td>
                 <a class="btn btn-primary btn-sm" href="/Edit">Edit</a>
-                <a class="btn btn-primary btn-sm" href="/Delete">Delete</a>
             </td>
         </tr>           
     </tbody>

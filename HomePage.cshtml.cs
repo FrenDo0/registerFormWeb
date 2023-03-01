@@ -36,10 +36,41 @@ namespace testWeb.Pages
             }
         }
 
-        public void OnPost()
+        public void OnPostDelete()
+        {
+            String id = HttpContext.Session.GetString("sessionUserId");
+            changeUserStatus(id,user);
+            HttpContext.Session.Clear();
+            Response.Redirect("/Index");
+        }
+        public void OnPostLogOut()
         {
             HttpContext.Session.Clear();
             Response.Redirect("/LogIn");
+        }
+
+        public void changeUserStatus(String userId,User user)
+        {
+            user.active = "FALSE";
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
+                    String sql = "UPDATE users SET user_active=@active WHERE user_id=@id";
+
+                    using (SqlCommand cmd = new SqlCommand(sql, connection))
+                    {
+                        cmd.Parameters.AddWithValue("@active", user.active);
+                        cmd.Parameters.AddWithValue("@id", userId);
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                errorMsg = "asd" + ex.StackTrace;
+            }
         }
         public User getUserInformation(String username)
         {
@@ -57,12 +88,14 @@ namespace testWeb.Pages
                         {
                             if (reader.Read())
                             {
-                                user.userId = "" + reader.GetInt32(0);
+                                user.userId = "" + reader.GetInt64(0);
                                 user.Username = reader.GetString(1);
                                 user.Password = reader.GetString(2);
                                 user.FirstName = reader.GetString(3);
                                 user.SecondName = reader.GetString(4);
                                 user.Email = reader.GetString(5);
+                                user.confirmedEmail = reader.GetString(6);
+                                user.active = reader.GetString(7);
                             }
                         }
                     }

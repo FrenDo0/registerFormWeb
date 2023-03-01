@@ -13,14 +13,13 @@
     if (Model.contains)
     {
         <p>You have registered succesfully</p>
+        <p>@Model.msg</p>
     }
 }
 else
 {
     <p>@Model.errorMsg</p>
 }
-
-<button type="button" class="btn btn-cta"><a asp-page="/HomePage">znaesh</a></button>
 
 <form method="post">
     <div class="row mb-3">

@@ -16,6 +16,9 @@ namespace testWeb.Pages
         public String Email { get; set; }
         public String userId { get; set; }
 
+        public String confirmedEmail { get; set; }
+
+        public String active { get; set; }
 
         public User() { }
 
