@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNet.Identity;
 using System.Net.Mail;
 using System.Text;
-
+using Microsoft.AspNetCore.Http;
 
 namespace testWeb.Pages
 {
@@ -84,9 +84,13 @@ namespace testWeb.Pages
                 var randomCode = new Random();
                 int code = randomCode.Next(100,999);
                 Int64 id = int.Parse(newUser.userId);
-                sentCode(code.ToString(), id);
-                sendEmailVerification(code.ToString());
+                String encryptedCode = encryptPassword(code.ToString());
+                String username = "";
+                username = user.Username;
+                sentCode(encryptedCode, id);
+                sendEmailVerification(encryptedCode,id.ToString());
                 msg = "Please confirm your email address !";
+                HttpContext.Session.SetString("sessionUsername", username);
             }
         }
         public User getUserInformation(String username)
@@ -202,8 +206,9 @@ namespace testWeb.Pages
                 errorMsg = "Already existing username or email !";
             }
         }
-        public async void sendEmailVerification(String confirmCode)
+        public async void sendEmailVerification(String confirmCode,String userId)
         {
+            String url = "https://localhost:44322/LogIn?code=" + confirmCode+"&userId="+userId;
             try
             {
                 using (MailMessage mail = new MailMessage())
@@ -211,7 +216,7 @@ namespace testWeb.Pages
                     mail.From = new MailAddress("lddimitrov546@gmail.com");
                     mail.To.Add(new MailAddress("lddimitrov546@gmail.com"));
                     mail.Subject = "Please confirm your profile";
-                    mail.Body = "<h2>Your confirmation code is: " + confirmCode + "</h2>";
+                    mail.Body = "<p>Your confirmation link: " + url + " </p>";
                     mail.IsBodyHtml = true;
 
                     using (SmtpClient smtp = new SmtpClient("smtp.gmail.com", 587))

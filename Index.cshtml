@@ -4,6 +4,10 @@
     ViewData["Title"] = "Home page";
 }
 
+<!DOCTYPE html>
+<html>
+
+
 <div class="text-center">
     <h1>Welcome to register form</h1>
 </div>
@@ -14,12 +18,17 @@
     {
         <p>You have registered succesfully</p>
         <p>@Model.msg</p>
+        <p>If you didnt receive email click <a href="/ConfirmEmail">here</a></p>
     }
 }
 else
 {
     <p>@Model.errorMsg</p>
 }
+<httpHandlers>
+    <addverb ="GET" path="CaptchaImage.axd"
+             type="MSCaptcha.CaptchaImageHandler, MSCaptcha" />
+</httpHandlers>
 
 <form method="post">
     <div class="row mb-3">
@@ -68,3 +77,4 @@ else
         </div>
     </div>
 </form>
+</html>

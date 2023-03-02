@@ -2,7 +2,15 @@
 @model testWeb.Pages.LogInModel
 @{
 }
-
+@if(Model.verified != null)
+            {
+                <p>@Model.verified</p>
+            }
+@if(Model.notVerified != null)
+            {
+                <p>@Model.notVerified</p><br />
+                <a href="/ConfirmEmail">send new email</a>
+            }
 <div class="text-center">
     <h1>Log in</h1>
 </div>

@@ -19,9 +19,19 @@ namespace testWeb.Pages
         public String errorMsg;
         public String accountDeleted;
         public String confirmed;
+        public String getVerificationCode;
+        public String verified;
+        public String getUserIdStr;
+        public String notVerified;
         public void OnGet()
         {
-            
+            getVerificationCode = Request.Query["code"];
+            getUserIdStr = Request.Query["userId"];
+            if(getVerificationCode != null && getUserIdStr != null)
+            {
+                changeUserStatus(getUserIdStr);
+                verified = "You verified your email. Please log in";
+            }
         }
      
         public void OnPost()
@@ -45,8 +55,9 @@ namespace testWeb.Pages
                     }
                     else
                     {
+                        notVerified = "Please verify your email. If you didnt received email click here to send new one";
                         HttpContext.Session.SetString("sessionUsername", username);
-                        Response.Redirect("/ConfirmEmail");
+                        
                     }
                    
                 }
@@ -63,13 +74,39 @@ namespace testWeb.Pages
             
 
         }
+
+        public void changeUserStatus(String userId)
+        {
+            String status = "TRUE";
+
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
+                    String sql = "UPDATE users SET user_confirmed=@confirmed WHERE user_id=@id";
+
+                    using (SqlCommand cmd = new SqlCommand(sql, connection))
+                    {
+                        cmd.Parameters.AddWithValue("@confirmed", status);
+                        cmd.Parameters.AddWithValue("@id", userId);
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                errorMsg = "asd" + ex.StackTrace;
+            }
+        }
+
         public string encryptPassword(string pass)
         {
             byte[] storePass = ASCIIEncoding.ASCII.GetBytes(pass);
             string encryptedPass = Convert.ToBase64String(storePass);
             return encryptedPass;
         }
-
+       
         public string isActive(String username)
         {
             String result = "";

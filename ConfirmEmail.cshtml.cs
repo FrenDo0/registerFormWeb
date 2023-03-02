@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Net.Mail;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -18,14 +19,7 @@ namespace testWeb.Pages
         public String connectionString = "Data Source=.\\tew_sqlexpress;Initial Catalog=storeNumbers;Integrated Security=True";
         public void OnGet()
         {
-            sessionUsername = HttpContext.Session.GetString("sessionUsername");
-            if (sessionUsername == null)
-            {
-                errorMsg = "Couldnt get session username !";
-                Response.Redirect("/Authorization");
-                return;
-            }
-        
+          
         }
 
         public void OnPostSubmit()
@@ -34,18 +28,17 @@ namespace testWeb.Pages
             sessionUsername = HttpContext.Session.GetString("sessionUsername");
             Int64 userId = getUserId(sessionUsername);
             code = getCodeFromDatabase(userId);
-            String inputCode = Request.Form["confirm"];
+            String email = Request.Form["confirm"];
+            String encrypt = "";
+            encrypt = encryptPassword(code.ToString());
             
-            if (inputCode.Equals(code))
+            if (email != null)
             {
-                changeUserStatus(userId.ToString());
-                HttpContext.Session.SetString("sessionUsername",sessionUsername);
-                Response.Redirect("/HomePage");
-                test = "yes";
+                sendEmailVerification(encrypt, userId.ToString());
             }
             else
             {
-                errorMsg = "Wrong code !";
+                errorMsg = "Enter your email !";
             }
         }
         public void OnPostBack()
@@ -53,17 +46,16 @@ namespace testWeb.Pages
             HttpContext.Session.Clear();
             Response.Redirect("/LogIn");
         }
-        public void OnPostResend()
+        public string encryptPassword(string pass)
         {
-            sessionUsername = HttpContext.Session.GetString("sessionUsername");
-            Int64 userId = getUserId(sessionUsername);
-            String code = getCodeFromDatabase(userId);
-            sendEmailVerification(code);
-            errorMsg = "Check email";
+            byte[] storePass = ASCIIEncoding.ASCII.GetBytes(pass);
+            string encryptedPass = Convert.ToBase64String(storePass);
+            return encryptedPass;
         }
-
-        public async void sendEmailVerification(String confirmCode)
+        public async void sendEmailVerification(String confirmCode,String userId)
         {
+
+            String url = "https://localhost:44322/LogIn?code=" + confirmCode + "&userId=" + userId;
             try
             {
                 using (MailMessage mail = new MailMessage())
@@ -71,7 +63,7 @@ namespace testWeb.Pages
                     mail.From = new MailAddress("lddimitrov546@gmail.com");
                     mail.To.Add(new MailAddress("lddimitrov546@gmail.com"));
                     mail.Subject = "Please confirm your profile";
-                    mail.Body = "<h2>Your confirmation code is: " + confirmCode + "</h2>";
+                    mail.Body = "<p>Your confirmation link: " + url + " </p>";
                     mail.IsBodyHtml = true;
 
                     using (SmtpClient smtp = new SmtpClient("smtp.gmail.com", 587))
