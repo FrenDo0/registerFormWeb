@@ -25,10 +25,6 @@ else
 {
     <p>@Model.errorMsg</p>
 }
-<httpHandlers>
-    <addverb ="GET" path="CaptchaImage.axd"
-             type="MSCaptcha.CaptchaImageHandler, MSCaptcha" />
-</httpHandlers>
 
 <form method="post">
     <div class="row mb-3">
@@ -67,7 +63,9 @@ else
             <input type="text" class="form-control" name="email" value="" />
         </div>
     </div>
-
+    <div class="form-group">
+        <div class="g-recaptcha" data-sitekey="6Lc84tgkAAAAAMbMp3shtI0MUbpI2vU_X9CDFlVA"></div>
+    </div>
     <div class="row mb-3">
         <div class="offset-sm-3 col-sm-3 d-grid">
             <button type="submit" class="btn btn-primary">Register</button>
@@ -77,4 +75,18 @@ else
         </div>
     </div>
 </form>
+
+@*<script src="https://www.google.com/recaptcha/enterprise.js?render=6LcTkdYkAAAAAIO01TU5ydj3hUKLD0cidaueAvES"></script>
+    <script>
+    grecaptcha.enterprise.ready(function() {
+        grecaptcha.enterprise.execute('6LcTkdYkAAAAAIO01TU5ydj3hUKLD0cidaueAvES', {action: 'login'}).then(function(token) {
+           ...
+        });
+    });
+    </script>*@
+
+@section Scripts {
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <partial name="_ValidationScriptsPartial" />
+    </script>}
 </html>

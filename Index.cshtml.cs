@@ -16,12 +16,18 @@ namespace testWeb.Pages
 {
     public class IndexModel : PageModel
     {
+        private readonly ReCaptcha _captcha;
         public String connectionString = "Data Source=.\\tew_sqlexpress;Initial Catalog=storeNumbers;Integrated Security=True";
         public bool contains = false;
         public String errorMsg;
         User user = new User();
         public String msg = "";
-        public void OnPost()
+
+        public IndexModel(ReCaptcha captcha)
+        {
+            _captcha = captcha;
+        }
+        public async Task OnPostAsync()
         {
             String storedPass = Request.Form["password"];
             user.Username = Request.Form["username"];
@@ -32,9 +38,12 @@ namespace testWeb.Pages
             user.active = "TRUE";
             contains = true;
             bool checker = false;
-            bool validMail = IsValidMail(user.Email);
+            bool validMail = false;
             String confirmPass = Request.Form["confirmPass"];
-
+            if(user.Email != "")
+            {
+                validMail = IsValidMail(user.Email);
+            }
             if (user.Username.Length == 0)
             {
                 errorMsg = "Enter username";
@@ -45,11 +54,7 @@ namespace testWeb.Pages
                 errorMsg = "Enter password";
                 checker = false;
             }
-            else if (validMail == false)
-            {
-                errorMsg = "Invalid email address";
-                checker = false;
-            }
+            
             else if (confirmPass.Length == 0 || !confirmPass.Equals(storedPass))
             {
                 errorMsg = "Confirm your password !";
@@ -70,9 +75,28 @@ namespace testWeb.Pages
                 errorMsg = "Enter email";
                 checker = false;
             }
+            
+            else if (validMail == false)
+            {
+                errorMsg = "Invalid email address";
+                checker = false;
+            }
             else
             {
+              
                 checker = true;
+            }
+
+            if (!Request.Form.ContainsKey("g-recaptcha-response"))
+            {
+                errorMsg = "Verify captcha";
+                checker = false;
+            }
+            var captcha = Request.Form["g-recaptcha-response"].ToString();
+            if (!await _captcha.IsValid(captcha))
+            {
+                errorMsg = "Verify captcha";
+                checker = false;
             }
 
             if (checker == true)
