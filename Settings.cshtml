@@ -1,0 +1,20 @@
+﻿@page
+@model testWeb.Pages.SettingsModel
+@{
+}
+
+<!DOCTYPE html>
+<html>
+<div>
+    <form method="post">
+        <label>Number of incorrect attempts to log in</label>
+        <input type="text" id="number" name="number" />
+        <br />
+        <label>For how long user will be lockout after incorrect attempts in seconds</label>
+        <input type="text" id="time" name="time" />
+        <br />
+
+        <button type="submit" id="set">Set settings</button>
+    </form>
+</div>
+</html>

@@ -11,6 +11,7 @@ using Microsoft.AspNet.Identity;
 using System.Net.Mail;
 using System.Text;
 using Microsoft.AspNetCore.Http;
+using System.Web.Helpers;
 
 namespace testWeb.Pages
 {
@@ -22,6 +23,7 @@ namespace testWeb.Pages
         public String errorMsg;
         User user = new User();
         public String msg = "";
+       
 
         public IndexModel(ReCaptcha captcha)
         {
@@ -49,15 +51,29 @@ namespace testWeb.Pages
                 errorMsg = "Enter username";
                 checker = false;
             }
+            else if (user.Username.Length < 3 || user.Username.Length > 20)
+            {
+                errorMsg = "Username must be between 3 and 20 symbols";
+                checker = false;
+            }
+            else if (storedPass.Length < 6 || storedPass.Length > 20)
+            {
+                errorMsg = "Password must be between 6 and 20 symbols";
+                checker = false;
+            }
             else if (storedPass.Length == 0)
             {
                 errorMsg = "Enter password";
                 checker = false;
             }
-            
             else if (confirmPass.Length == 0 || !confirmPass.Equals(storedPass))
             {
                 errorMsg = "Confirm your password !";
+                checker = false;
+            }
+            else if (user.FirstName.Length < 3 || user.FirstName.Length > 30)
+            {
+                errorMsg = "First name must be between 3 and 30 symbols";
                 checker = false;
             }
             else if (user.FirstName.Length == 0)
@@ -65,9 +81,19 @@ namespace testWeb.Pages
                 errorMsg = "Enter first name";
                 checker = false;
             }
+            else if (user.SecondName.Length < 3 || user.SecondName.Length > 30)
+            {
+                errorMsg = "Second name must be between 3 and 30 symbols";
+                checker = false;
+            }
             else if (user.SecondName.Length == 0)
             {
                 errorMsg = "Enter second name";
+                checker = false;
+            }
+            else if (user.Email.Length < 5 || user.Email.Length > 30)
+            {
+                errorMsg = "Email address must be between 5 and 30 symbols";
                 checker = false;
             }
             else if (user.Email.Length == 0)
@@ -86,7 +112,7 @@ namespace testWeb.Pages
               
                 checker = true;
             }
-
+            //Използвам  google recaptcha https://codingsonata.com/google-recaptcha-v3-server-verification-in-asp-net-core-web-api/
             if (!Request.Form.ContainsKey("g-recaptcha-response"))
             {
                 errorMsg = "Verify captcha";
@@ -101,12 +127,16 @@ namespace testWeb.Pages
 
             if (checker == true)
             {
-                user.Password = encryptPassword(storedPass);
+                //Използвам System.Web.Helpers където има клас Crypto в който има методи HashPassword(string password) и VerifyHashPassword(string hashedPass,string pass)
+                //https://learn.microsoft.com/en-us/dotnet/api/system.web.helpers.crypto.hashpassword?view=aspnet-webpages-3.2
+                user.Password = Crypto.HashPassword(storedPass);
                 insertUser(user);
                 User newUser = new User();
                 newUser = getUserInformation(user.Username);
+
                 var randomCode = new Random();
                 int code = randomCode.Next(100,999);
+
                 Int64 id = int.Parse(newUser.userId);
                 String encryptedCode = encryptPassword(code.ToString());
                 String username = "";
@@ -114,6 +144,13 @@ namespace testWeb.Pages
                 sentCode(encryptedCode, id);
                 sendEmailVerification(encryptedCode,id.ToString());
                 msg = "Please confirm your email address !";
+
+                //The session data itself is stored server side.
+                //The only thing that is stored on the client's computer
+                //is a cookie with a unique identifier so the server
+                //knows which session to load at the server side. Users
+                //cannot manipulate the data stored in the session itself.
+
                 HttpContext.Session.SetString("sessionUsername", username);
             }
         }
