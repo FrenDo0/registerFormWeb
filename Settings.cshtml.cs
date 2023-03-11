@@ -16,7 +16,16 @@ namespace testWeb.Pages
         {
         }
 
-        public void OnPost()
+        public void OnPostLinkExpiration()
+        {
+            String minutesStr = Request.Form["expireTime"];
+            if(minutesStr.Length != 0)
+            {
+                int minutes = int.Parse(minutesStr);
+                changeExpirationTime(minutes);
+            }
+        }
+        public void OnPostIncorrectPass()
         {
             String nums = Request.Form["number"];
             String sec = Request.Form["time"];
@@ -32,6 +41,29 @@ namespace testWeb.Pages
             }
         }
 
+        public void changeExpirationTime(int minutes)
+        {
+            int id = 1;
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
+                    String sql = "UPDATE wrongPassSettings SET expiration_time=@minutes WHERE id=@id";
+
+                    using (SqlCommand cmd = new SqlCommand(sql, connection))
+                    {
+                        cmd.Parameters.AddWithValue("minutes", minutes);
+                        cmd.Parameters.AddWithValue("id", id);
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                errorMsg = ex.StackTrace;
+            }
+        }
         public void changeTimeOut(int seconds)
         {
             int id = 1;

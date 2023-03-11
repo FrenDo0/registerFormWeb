@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Mail;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web.Helpers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -24,17 +25,21 @@ namespace testWeb.Pages
 
         public void OnPostSubmit()
         {
-            String code = "";
             sessionUsername = HttpContext.Session.GetString("sessionUsername");
             Int64 userId = getUserId(sessionUsername);
-            code = getCodeFromDatabase(userId);
-            String email = Request.Form["confirm"];
-            String encrypt = "";
-            encrypt = encryptPassword(code.ToString());
+
+            //generate new code !!!!!!
+            String generateCode = Guid.NewGuid().ToString();
             
+            String cryptedCode = Crypto.HashPassword(generateCode);
+
+            String email = Request.Form["confirm"];
+           
             if (email != null)
             {
-                sendEmailVerification(encrypt, userId.ToString());
+                DateTime date = DateTime.Now;
+                sentCode(cryptedCode, userId, date);
+                sendEmailVerification(cryptedCode, userId.ToString());
             }
             else
             {
@@ -54,8 +59,8 @@ namespace testWeb.Pages
         }
         public async void sendEmailVerification(String confirmCode,String userId)
         {
-
-            String url = "https://localhost:44322/LogIn?code=" + confirmCode + "&userId=" + userId;
+            
+            String url = "https://localhost:44322/LogIn?code=" + Uri.EscapeDataString(confirmCode) + "&userId=" + userId;
             try
             {
                 using (MailMessage mail = new MailMessage())
@@ -79,31 +84,29 @@ namespace testWeb.Pages
                 errorMsg = "neshto" + ex.StackTrace + ex.Message;
             }
         }
-        public void changeUserStatus(String userId)
+        public void sentCode(String code, Int64 userId, DateTime date)
         {
-            String status = "TRUE";
-
             try
             {
                 using (SqlConnection connection = new SqlConnection(connectionString))
                 {
                     connection.Open();
-                    String sql = "UPDATE users SET user_confirmed=@confirmed WHERE user_id=@id";
-
+                    String sql = "INSERT INTO confirmCodes (confirm_code,user_id,sended_date) " +
+                        "VALUES (@code,@id,@date)";
                     using (SqlCommand cmd = new SqlCommand(sql, connection))
                     {
-                        cmd.Parameters.AddWithValue("@confirmed", status);
+                        cmd.Parameters.AddWithValue("@code", code);
                         cmd.Parameters.AddWithValue("@id", userId);
+                        cmd.Parameters.AddWithValue("@date", date);
                         cmd.ExecuteNonQuery();
                     }
                 }
             }
             catch (Exception ex)
             {
-                errorMsg = "asd" + ex.StackTrace;
+                errorMsg = ex.Message;
             }
         }
-
         public string getCodeFromDatabase(Int64 userId)
         {
             String result = "";
@@ -163,36 +166,6 @@ namespace testWeb.Pages
                 errorMsg = ex.StackTrace;
             }
             return userId;
-        }
-        public string isConfirmed(String username)
-        {
-            String result = "";
-            try
-            {
-                using (SqlConnection connection = new SqlConnection(connectionString))
-                {
-                    connection.Open();
-                    String sql = "SELECT user_confirmed FROM users WHERE user_username=@username";
-
-                    using (SqlCommand cmd = new SqlCommand(sql, connection))
-                    {
-                        cmd.Parameters.AddWithValue("@username", username);
-
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            if (reader.Read())
-                            {
-                                result = reader.GetString(0);
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                errorMsg = ex.StackTrace;
-            }
-            return result;
         }
     }
 }

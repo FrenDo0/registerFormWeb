@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using MySqlX.XDevAPI;
 using System.Web.Helpers;
 using System.Data;
+using System.IO;
 
 namespace testWeb.Pages
 {
@@ -27,17 +28,45 @@ namespace testWeb.Pages
         public String notVerified;
         public String test;
         public int numberAttempts = 0;
+
         public void OnGet()
         {
             getVerificationCode = Request.Query["code"];
             getUserIdStr = Request.Query["userId"];
+            
             if(getVerificationCode != null && getUserIdStr != null)
             {
-                changeUserStatus(getUserIdStr);
-                verified = "You verified your email. Please log in";
+               
+                int uId = int.Parse(getUserIdStr);
+                Int64 userId = uId;
+                DateTime sendedDate = new DateTime();
+                DateTime currentDate = DateTime.Now;
+                String confirmCode = getUserCode(userId);
+               
+                if(confirmCode.Equals(getVerificationCode.ToString()))
+                {
+                    
+                    sendedDate = getSendedDate(userId);
+                    TimeSpan timeSpan = new TimeSpan();
+                    timeSpan = currentDate.Subtract(sendedDate);
+
+                    int minutes = expirationTime();
+
+                    if(timeSpan.TotalMinutes > minutes)
+                    {
+                        test = "code has expired";
+                    }
+                    else
+                    {
+                        changeUserStatus(getUserIdStr);
+                        verified = "You verified your email. Please log in";
+                    }
+                }
+                
             }
             
         }
+
      
         public void OnPost()
         {
@@ -54,7 +83,7 @@ namespace testWeb.Pages
             bool checkAttempt = checkIfUserIsExistingInIncorrectAttempts(userId);
             int maxAttempts = numberOfAttemptsSettings();
 
-
+            
             DateTime lastTime = getTime(userId);
             TimeSpan timePassed = currentDate - lastTime;
             Int64 rowId = getRowId(userId);
@@ -155,7 +184,128 @@ namespace testWeb.Pages
             
         }
 
-      
+        public String getUserCode(Int64 userId)
+        {
+            String code = "";
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
+                    String sql = "SELECT TOP 1 confirm_code FROM confirmCodes WHERE user_id=@userId ORDER BY code_id DESC ";
+
+                    using (SqlCommand cmd = new SqlCommand(sql, connection))
+                    {
+                        cmd.Parameters.AddWithValue("userId", userId);
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                code = reader.GetString(0);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                errorMsg = ex.StackTrace + " " + ex.Message;
+            }
+            return code;
+        }
+        public DateTime getSendedDate(Int64 userId)
+        {
+            DateTime time = new DateTime();
+
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
+                    String sql = "SELECT TOP 1 sended_date FROM confirmCodes WHERE user_id=@userId ORDER BY code_id DESC";
+
+                    using (SqlCommand cmd = new SqlCommand(sql, connection))
+                    {
+                        cmd.Parameters.AddWithValue("userId", userId);
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                time = reader.GetDateTime(0);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                errorMsg = ex.StackTrace + " " + ex.Message;
+            }
+            return time;
+        }
+        public bool isConfirmCodeSended(Int64 userId, String confirmationCode)
+        {
+            bool check = false;
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
+                    String sql = "SELECT COUNT(*) FROM confirmCodes WHERE user_id=@userId AND confirm_code=@confirmCode";
+
+                    using (SqlCommand cmd = new SqlCommand(sql, connection))
+                    {
+                        cmd.Parameters.AddWithValue("@userId", userId);
+                        cmd.Parameters.AddWithValue("@confirmCode", confirmationCode);
+
+                        Int32 count = (Int32)cmd.ExecuteScalar();
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                if (count > 0)
+                                {
+                                    check = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                errorMsg = ex.StackTrace + " " + ex.Message;
+            }
+            return check;
+        }
+        public int expirationTime()
+        {
+            int time = 0;
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
+                    String sql = "SELECT expiration_time FROM wrongPassSettings";
+
+                    using (SqlCommand cmd = new SqlCommand(sql, connection))
+                    {
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                time = reader.GetInt32(0);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                errorMsg = ex.StackTrace;
+            }
+            return time;
+        }
         public DateTime getUserLockOutTime(Int64 userId)
         {
             DateTime time = new DateTime();
@@ -517,7 +667,6 @@ namespace testWeb.Pages
                 errorMsg = "asd" + ex.StackTrace;
             }
         }
-       
         public string isActive(String username)
         {
             String result = "";

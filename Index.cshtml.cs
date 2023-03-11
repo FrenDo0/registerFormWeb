@@ -129,20 +129,22 @@ namespace testWeb.Pages
             {
                 //Използвам System.Web.Helpers където има клас Crypto в който има методи HashPassword(string password) и VerifyHashPassword(string hashedPass,string pass)
                 //https://learn.microsoft.com/en-us/dotnet/api/system.web.helpers.crypto.hashpassword?view=aspnet-webpages-3.2
+
                 user.Password = Crypto.HashPassword(storedPass);
                 insertUser(user);
                 User newUser = new User();
                 newUser = getUserInformation(user.Username);
 
-                var randomCode = new Random();
-                int code = randomCode.Next(100,999);
+                //A GUID (globally unique identifier) is a 128-bit text string that represents an identification (ID).
+                string generateCode = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+                string cryptedCode = Crypto.HashPassword(generateCode);
 
                 Int64 id = int.Parse(newUser.userId);
-                String encryptedCode = encryptPassword(code.ToString());
                 String username = "";
                 username = user.Username;
-                sentCode(encryptedCode, id);
-                sendEmailVerification(encryptedCode,id.ToString());
+                DateTime date = DateTime.Now;
+                sentCode(cryptedCode, id,date);
+                sendEmailVerification(cryptedCode, id.ToString());
                 msg = "Please confirm your email address !";
 
                 //The session data itself is stored server side.
@@ -245,31 +247,32 @@ namespace testWeb.Pages
             return decryptedPass;
         }
 
-        public void sentCode(String code,Int64 userId)
+        public void sentCode(String code,Int64 userId,DateTime date)
         {
             try
             {
                 using (SqlConnection connection = new SqlConnection(connectionString))
                 {
                     connection.Open();
-                    String sql = "INSERT INTO confirmCodes (confirm_code,user_id) " +
-                        "VALUES (@code,@id)";
+                    String sql = "INSERT INTO confirmCodes (confirm_code,user_id,sended_date) " +
+                        "VALUES (@code,@id,@date)";
                     using (SqlCommand cmd = new SqlCommand(sql, connection))
                     {
                         cmd.Parameters.AddWithValue("@code",code);
                         cmd.Parameters.AddWithValue("@id", userId);
+                        cmd.Parameters.AddWithValue("@date",date);
                         cmd.ExecuteNonQuery();
                     }
                 }
             }
             catch (Exception ex)
             {
-                errorMsg = "Already existing username or email !";
+                errorMsg = ex.Message;
             }
         }
         public async void sendEmailVerification(String confirmCode,String userId)
         {
-            String url = "https://localhost:44322/LogIn?code=" + confirmCode+"&userId="+userId;
+            String url = "https://localhost:44322/LogIn?code=" + Uri.EscapeDataString(confirmCode) +"&userId="+userId;
             try
             {
                 using (MailMessage mail = new MailMessage())
@@ -293,5 +296,7 @@ namespace testWeb.Pages
                 errorMsg ="neshto" + ex.StackTrace + ex.Message;
             }
         }
+
+        
     }
 }

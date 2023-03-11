@@ -6,7 +6,7 @@
 <!DOCTYPE html>
 <html>
 <div>
-    <form method="post">
+    <form method="post" asp-page-handler="IncorrectPass">
         <label>Number of incorrect attempts to log in</label>
         <input type="text" id="number" name="number" />
         <br />
@@ -15,6 +15,14 @@
         <br />
 
         <button type="submit" id="set">Set settings</button>
+    </form>
+</div>
+<div>
+    <form method="post" asp-page-handler="LinkExpiration">
+        <label>How much time the link will be active before expire in minutes</label>
+        <input type="text" id="expireTime" name="expireTime" />
+        <br />
+        <button type="submit" id="save">Set setting</button>
     </form>
 </div>
 </html>
